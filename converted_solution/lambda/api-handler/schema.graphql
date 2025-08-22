@@ -1,0 +1,443 @@
+# Workspaces
+
+input CreateWorkspaceAuroraInput {
+  name: String!
+  kind: String!
+  embeddingsModelProvider: String!
+  embeddingsModelName: String!
+  crossEncoderModelProvider: String
+  crossEncoderModelName: String
+  languages: [String!]!
+  metric: String!
+  index: Boolean!
+  hybridSearch: Boolean!
+  chunkingStrategy: String!
+  chunkSize: Int!
+  chunkOverlap: Int!
+}
+
+input CreateWorkspaceKendraInput {
+  name: String!
+  kind: String!
+  kendraIndexId: String!
+  useAllData: Boolean!
+}
+
+input CreateWorkspaceBedrockKBInput {
+  name: String!
+  kind: String!
+  knowledgeBaseId: String!
+  hybridSearch: Boolean!
+}
+
+input CreateWorkspaceOpenSearchInput {
+  name: String!
+  kind: String!
+  embeddingsModelProvider: String!
+  embeddingsModelName: String!
+  crossEncoderModelProvider: String
+  crossEncoderModelName: String
+  languages: [String!]!
+  hybridSearch: Boolean!
+  chunkingStrategy: String!
+  chunkSize: Int!
+  chunkOverlap: Int!
+}
+
+input CalculateEmbeddingsInput {
+  provider: String!
+  model: String!
+  passages: [String]!
+  task: String!
+}
+
+scalar DateTime
+
+type CrawlerProperties {
+  followLinks: Boolean
+  limit: Int
+  contentTypes: [String!]!
+}
+
+type CrossEncoderData {
+  provider: String!
+  name: String!
+  default: Boolean!
+}
+
+type DeleteSessionResult {
+  id: String
+  deleted: Boolean!
+}
+
+type DetectedLanguage {
+  code: String!
+  score: Float!
+}
+
+type Document {
+  workspaceId: String!
+  id: String!
+  type: String!
+  subType: String
+  status: String
+  title: String
+  path: String
+  sizeInBytes: Int
+  vectors: Int
+  subDocuments: Int
+  crawlerProperties: CrawlerProperties
+  errors: [String!]
+  createdAt: DateTime!
+  updatedAt: DateTime
+  rssFeedId: String
+  rssLastCheckedAt: DateTime
+}
+
+type DocumentResult {
+  workspaceId: String!
+  documentId: String!
+  status: String
+}
+
+type DeleteDocumentResult {
+  documentId: String!
+  deleted: Boolean!
+}
+
+type UserFeedbackResult {
+  feedback_id: String!
+}
+
+input DocumentSubscriptionStatusInput {
+  workspaceId: String!
+  documentId: String!
+  status: String!
+}
+
+type DocumentsResult {
+  items: [Document]!
+  lastDocumentId: String
+}
+
+type Embedding {
+  passage: String
+  vector: [Float!]!
+}
+
+type EmbeddingModel {
+  provider: String!
+  name: String!
+  dimensions: Int!
+  default: Boolean
+}
+
+input FileUploadInput {
+  workspaceId: String
+  fileName: String!
+}
+
+type FileUploadResult {
+  url: String!
+  fields: String
+}
+
+input GetDocumentInput {
+  workspaceId: String!
+  documentId: String!
+}
+
+input GetRSSPostsInput {
+  workspaceId: String!
+  documentId: String!
+  lastDocumentId: String
+}
+
+type KendraIndex {
+  id: String!
+  name: String!
+  external: Boolean!
+}
+
+type BedrockKB {
+  id: String!
+  name: String!
+  external: Boolean!
+}
+
+input ListDocumentsInput {
+  workspaceId: String!
+  documentType: String!
+  lastDocumentId: String
+}
+
+type Model {
+  name: String!
+  provider: String!
+  interface: String!
+  ragSupported: Boolean!
+  inputModalities: [String!]!
+  outputModalities: [String!]!
+  streaming: Boolean!
+  bedrockGuardrails: Boolean
+}
+
+type PassageRank {
+  score: Float!
+  passage: String!
+}
+
+input QnADocumentInput {
+  workspaceId: String!
+  question: String!
+  answer: String!
+}
+
+type RagEngine {
+  id: String!
+  name: String!
+  enabled: Boolean!
+}
+
+input RankPassagesInput {
+  provider: String!
+  model: String!
+  reference: String!
+  passages: [String]!
+}
+
+input RssFeedInput {
+  workspaceId: String!
+  address: String!
+  limit: Int!
+  title: String
+  followLinks: Boolean!
+  contentTypes: [String!]!
+}
+
+input UpdateRssFeedInput {
+  documentId: String!
+  workspaceId: String!
+  limit: Int!
+  followLinks: Boolean!
+  contentTypes: [String!]!
+}
+
+input SemanticSearchInput {
+  workspaceId: String!
+  query: String!
+}
+
+input ManageApplicationInput {
+  id: String
+  name: String!
+  model: String!
+  workspace: String
+  systemPrompt: String
+  systemPromptRag: String
+  condenseSystemPrompt: String
+  roles: [String]!
+  allowImageInput: Boolean!
+  allowDocumentInput: Boolean!
+  allowVideoInput: Boolean!
+  enableGuardrails: Boolean!
+  streaming: Boolean!
+  maxTokens: Int!
+  temperature: Float!
+  topP: Float!
+  seed: Int
+}
+
+type SemanticSearchItem {
+  sources: [String]
+  chunkId: String
+  workspaceId: ID!
+  documentId: String
+  documentSubId: String
+  documentSubType: String
+  documentType: String!
+  path: String
+  language: String
+  title: String
+  content: String
+  contentComplement: String
+  vectorSearchScore: Float
+  keywordSearchScore: Float
+  score: Float
+}
+
+type SemanticSearchResult {
+  engine: String!
+  workspaceId: String!
+  queryLanguage: String
+  supportedLanguages: [String!]
+  detectedLanguages: [DetectedLanguage!]
+  items: [SemanticSearchItem!]
+  vectorSearchMetric: String
+  vectorSearchItems: [SemanticSearchItem!]
+  keywordSearchItems: [SemanticSearchItem!]
+}
+
+type Session {
+  id: String!
+  title: String
+  startTime: DateTime!
+  history: [SessionHistoryItem]
+}
+
+type SessionHistoryItem {
+  type: String!
+  content: String!
+  metadata: String
+}
+
+input DeleteDocumentInput {
+  workspaceId: String!
+  documentId: String!
+}
+
+input UserFeedbackInput {
+  sessionId: String!
+  key: Int!
+  feedback: String!
+  prompt: String
+  completion: String!
+  model: String!
+  applicationId: String
+}
+
+input TextDocumentInput {
+  workspaceId: String!
+  title: String!
+  content: String!
+}
+
+input WebsiteInput {
+  workspaceId: String!
+  sitemap: Boolean!
+  address: String!
+  followLinks: Boolean!
+  limit: Int!
+  contentTypes: [String!]!
+}
+
+type Workspace {
+  id: String!
+  name: String!
+  formatVersion: Int
+  engine: String!
+  status: String
+  aossEngine: String
+  languages: [String]
+  hasIndex: Boolean
+  embeddingsModelProvider: String
+  embeddingsModelName: String
+  embeddingsModelDimensions: Int
+  crossEncoderModelName: String
+  crossEncoderModelProvider: String
+  metric: String
+  index: Boolean
+  hybridSearch: Boolean
+  chunkingStrategy: String
+  chunkSize: Int
+  chunkOverlap: Int
+  vectors: Int
+  documents: Int
+  sizeInBytes: Int
+  kendraIndexId: String
+  kendraIndexExternal: Boolean
+  kendraUseAllData: Boolean
+  knowledgeBaseId: String
+  knowledgeBaseExternal: Boolean
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Channel @aws_iam {
+  data: String
+  sessionId: String
+  userId: String
+}
+
+type Role {
+  id: String!
+  name: String!
+}
+
+type Application {
+  id: String!
+  name: String!
+  model: String
+  workspace: String
+  systemPrompt: String
+  systemPromptRag: String
+  condenseSystemPrompt: String
+  roles: [String]
+  allowImageInput: Boolean
+  allowDocumentInput: Boolean
+  allowVideoInput: Boolean
+  outputModalities: [String]
+  enableGuardrails: Boolean
+  streaming: Boolean
+  maxTokens: Int
+  temperature: Float
+  topP: Float
+  seed: Int
+  createTime: DateTime
+  updateTime: DateTime
+}
+
+type Mutation {
+  createKendraWorkspace(input: CreateWorkspaceKendraInput!): Workspace!
+  createBedrockKBWorkspace(input: CreateWorkspaceBedrockKBInput!): Workspace!
+  createOpenSearchWorkspace(input: CreateWorkspaceOpenSearchInput!): Workspace!
+  createAuroraWorkspace(input: CreateWorkspaceAuroraInput!): Workspace!
+  startKendraDataSync(workspaceId: String!): Boolean
+  deleteWorkspace(workspaceId: String!): Boolean
+  deleteDocument(input: DeleteDocumentInput!): DeleteDocumentResult
+  addTextDocument(input: TextDocumentInput!): DocumentResult
+  addUserFeedback(input: UserFeedbackInput!): UserFeedbackResult
+  addQnADocument(input: QnADocumentInput!): DocumentResult
+  setDocumentSubscriptionStatus(input: DocumentSubscriptionStatusInput!): DocumentResult
+  addWebsite(input: WebsiteInput!): DocumentResult
+  addRssFeed(input: RssFeedInput!): DocumentResult
+  updateRssFeed(input: UpdateRssFeedInput!): DocumentResult
+  deleteUserSessions: [DeleteSessionResult!]
+  deleteSession(id: String!): DeleteSessionResult
+  # Real-time
+  sendQuery(data: String): String
+  publishResponse(sessionId: String, userId: String, data: String): Channel
+  createApplication(input: ManageApplicationInput!): Application!
+  updateApplication(input: ManageApplicationInput!): Application!
+  deleteApplication(id: String!): Boolean
+}
+
+type Query {
+  checkHealth: Boolean
+  getUploadFileURL(input: FileUploadInput!): FileUploadResult
+  getFileURL(fileName: String!): String
+  listModels: [Model!]!
+  listWorkspaces: [Workspace!]!
+  getWorkspace(workspaceId: String!): Workspace
+  listRagEngines: [RagEngine!]!
+  performSemanticSearch(input: SemanticSearchInput!): SemanticSearchResult!
+  listSessions: [Session!]!
+  listEmbeddingModels: [EmbeddingModel!]!
+  calculateEmbeddings(input: CalculateEmbeddingsInput!): [Embedding]!
+  getSession(id: String!): Session
+  listKendraIndexes: [KendraIndex!]!
+  listBedrockKnowledgeBases: [BedrockKB!]!
+  isKendraDataSynching(workspaceId: String!): Boolean
+  listDocuments(input: ListDocumentsInput!): DocumentsResult!
+  getDocument(input: GetDocumentInput!): Document
+  getRSSPosts(input: GetRSSPostsInput!): DocumentsResult
+  listCrossEncoders: [CrossEncoderData!]
+  rankPassages(input: RankPassagesInput!): [PassageRank!]!
+  listRoles: [Role!]!
+  getApplication(id: String!): Application
+  listApplications: [Application!]!
+}
+
+type Subscription {
+  receiveMessages(sessionId: String): Channel
+}
