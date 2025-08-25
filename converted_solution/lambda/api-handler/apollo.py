@@ -27,28 +27,20 @@ def parse_datetime_value(value):
 # Register all resolvers and scalars
 schema = make_executable_schema(type_defs, [query, mutation, date_time_scalar])
 
-tracer = Tracer()
-logger = Logger(serialize_stacktrace=True)
+@mutation.field("publishResponse")
+def resolve_publish_response(_, info, data, sessionId, userId):
+    return {
+        "data": data,
+        "sessionId": sessionId,
+        "userId": userId,
+    }
 
-# Pure Ariadne Lambda handler pattern
+# Ariadne Lambda handler pattern
 app = GraphQL(schema, debug=True)
 handler = Mangum(app)
 
-# app.include_router(health_router)
-# app.include_router(rag_router)
-# app.include_router(embeddings_router)
-# app.include_router(cross_encoders_router)
-# app.include_router(models_router)
-# app.include_router(workspaces_router)
-# app.include_router(sessions_router)
-# app.include_router(semantic_search_router)
-# app.include_router(documents_router)
-# app.include_router(kendra_router)
-# app.include_router(user_feedback_router)
-# app.include_router(bedrock_kb_router)
-# app.include_router(roles_router)
-# app.include_router(applicatiion_router)
-
+tracer = Tracer()
+logger = Logger(serialize_stacktrace=True)
 
 @logger.inject_lambda_context(
     log_event=False, correlation_id_path=correlation_paths.APPSYNC_RESOLVER
