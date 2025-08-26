@@ -3,30 +3,39 @@ from ariadne.wsgi import GraphQL
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from datetime import datetime
 from mangum import Mangum
 from pydantic import ValidationError
 
 from genai_core.types import CommonError
-from graphql_scalars import DateTime as DateTimeScalar
+
+from converted_solution.lambda.send_query_lambda_resolver.index import handler as send_query_handler
 
 type_defs = gql(open("schema.graphql").read())
 query = QueryType()
 mutation = MutationType()
 
 # Create the Ariadne ScalarType for DateTime
-date_time_scalar = ScalarType("DateTime")
+datetime_scalar = ScalarType("DateTime")
 
-@date_time_scalar.serializer
+@datetime_scalar.serializer
 def serialize_datetime(value):
-    return DateTimeScalar.serialize(value)
+    """Serializes a datetime object to an ISO 8601 string."""
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return None
 
-@date_time_scalar.value_parser
+@datetime_scalar.value_parser
 def parse_datetime_value(value):
-    return DateTimeScalar.parse_value(value)
+    """Parses an ISO 8601 string to a datetime object."""
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            raise ValueError("Invalid DateTime format. Expected ISO 8601 string.")
+    return None
 
 # Register all resolvers and scalars
-schema = make_executable_schema(type_defs, [query, mutation, date_time_scalar])
-
 @mutation.field("publishResponse")
 def resolve_publish_response(_, info, data, sessionId, userId):
     return {
@@ -35,7 +44,23 @@ def resolve_publish_response(_, info, data, sessionId, userId):
         "userId": userId,
     }
 
+@mutation.field("sendQuery")
+def resolve_send_query(_, info, data):
+    event = {
+        "arguments": {
+            "data": data
+        },
+        "identity": info.context.get("identity", {}),
+        "info": {
+            "fieldName": "sendQuery"
+        }
+    }
+    context = {}
+    return send_query_handler(event, context)
+
 # Ariadne Lambda handler pattern
+
+schema = make_executable_schema(type_defs, [query, mutation, date_time_scalar])
 app = GraphQL(schema, debug=True)
 handler = Mangum(app)
 

@@ -6,6 +6,15 @@ resource "aws_dynamodb_table" "sessions" {
     name = "connectionId"
     type = "S"
   }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+  global_secondary_index {
+    name            = "byUserIdIndex"
+    hash_key        = "userId"
+    projection_type = "ALL"
+  }
   # Add additional attributes and GSIs as needed
 }
 
