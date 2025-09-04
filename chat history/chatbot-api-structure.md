@@ -1,0 +1,55 @@
+# Structure
+Describes `lib/chatbot-api`
+- `chatbot-api/index.js`
+    - definition: The main AWS CDK construct for deploying the entire backend infrastructure for the chatbot API.
+    It orchestrates the creation and wiring together of all the main AWS resources (DynamoDB, S3, AppSync, SQS, SNS, Lambda, WAF, etc.) required for the chatbot’s serverless backend.
+    - AppSync GraphQL Api: `ChatbotGraphqlApi`
+    - import: `ApiResolvers` from `./rest-api.ts`
+        - new ApiResolvers: `RestApi`
+    - import: `RealtimeGraphqlApiBackend` from `./websocket-api.ts`
+        - new RealtimeGraphqlApiBackend: `Realtime`
+        - outgoingMessageHandler url: GRAPHQL_ENDPOINT
+    - schema: `schema/schema.graphql`
+- `rest-api.ts`
+    - description: CDK construct that defines the infrastructure for the main GraphQL API backend
+    - export function: `ApiResolvers`
+    - Lambda function, `GraphQLApiHandler`
+        - description: Main Appsync resolver, built in Python
+        - path: `./functions/api-handler`
+    - schema 
+        - path: `lib/chatbot-api/schema/schema.graphql` 
+        - Resolver:
+            - Ignore `sendQuery` and `publishResponse` since they are added by the realtime API, `appsync-ws.ts`
+            - Add Query and Mutation
+- `websocket-api.ts`
+    - description:  CDK construct responsible for provisioning the real-time backend infrastructure for chat messaging.
+    It wires together SNS, SQS, and RealtimeResolvers to support message fan-out and processing for real-time chat, originally for AppSync WebSocket but in a general pattern for message delivery. Use resolvers defined in `RealtimeResolvers` from `./appsync-ws.ts`
+    - export function: `RealtimeGraphqlApiBackend`
+    - import: `RealtimeResolvers` from `./appsync-ws.ts`
+        - new resolver: `RealtimeResolvers`
+    - note: Route all outgoing messages to the websocket interface queue
+- `appsync-ws.ts`
+    - description: CDK construct to configures the realtime (subscription) layer of the chatbot using AWS AppSync. Orchestrate real-time, bidirectional chat via GraphQL subscriptions (AppSync), Lambda handlers, and SNS/SQS as message pipeline. `ws` stands for WebSocket.
+    - export function: `RealtimeResolvers`
+    - Lambda function, `lambda-resolver`
+        - description: Appsync realtime resolver handling LLM Queries via Lambda
+        - path: `./lib/chatbot-api/functions/resolvers/send-query-lambda-resolver`
+        - note:
+            - Part of `RealtimeResolvers.sendQueryHandler`
+            - sendQuery and sendMessage are used interchangably
+        - Resolver: `send-message-resolver`
+            - typeName: `Mutation`
+            - fieldName: `sendQuery`
+    - NodeJs function, `outgoing-message-handler`
+        - description: Sends LLM Responses to Appsync
+        - path: `functions/outgoing-message-appsync/index.ts`
+        - url: GRAPHQL_ENDPOINT
+    - Resolver: `publish-response-resolver`
+        - typeName: `Mutation`
+        - fieldName: `publishResponse`
+        - path: `./lib/chatbot-api/functions/resolvers/publish-response-resolver.js`
+    - Resolver: `subscription-resolver`
+        - typeName: `Subscription`
+        - fieldName: `receiveMessages`
+        - path: `./lib/chatbot-api/functions/resolvers/subscribe-resolver.js`
+
