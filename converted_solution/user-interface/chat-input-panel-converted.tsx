@@ -50,7 +50,6 @@ import {
 import { getSelectedModelMetadata, updateMessageHistoryRef } from "./utils";
 import { Utils } from "../../common/utils";
 import FileDialog from "./file-dialog";
-import { AppConfig } from "../../types";
 import { AppContext } from "../../app-context";
 
 export interface ChatInputPanelProps {
